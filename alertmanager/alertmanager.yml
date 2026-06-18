@@ -1,0 +1,30 @@
+# Configuration globale pour Alertmanager (ex: configuration du serveur d'envoi de mails)
+global:
+  # Serveur SMTP cible (notre conteneur MailHog sur le réseau Docker)
+  smtp_smarthost: 'mailhog:1025'
+  # Adresse mail expéditrice affichée sur les alertes
+  smtp_from: 'alertmanager@ynov.com'
+  # Désactivation du TLS car MailHog ne le nécessite pas en local
+  smtp_require_tls: false
+
+# Routage des alertes reçues par Alertmanager depuis Prometheus
+route:
+  # Regroupement des alertes par leur nom (pour éviter le spam si plusieurs alertes identiques)
+  group_by: ['alertname']
+  # Receiver par défaut à utiliser si aucune règle spécifique de routage ne matche
+  receiver: 'dual-receiver'
+
+# Définition des récepteurs (receivers) spécifiant comment et où envoyer les alertes
+receivers:
+  - name: 'dual-receiver'
+    # 1er canal de notification : envoi d'un email
+    email_configs:
+      - to: 'student@ynov.com'
+        # Envoyer également un email quand l'alerte est résolue
+        send_resolved: true
+    
+    # 2ème canal de notification simultané : envoi d'un message Discord via Webhook
+    discord_configs:
+      - webhook_url: 'https://discord.com/api/webhooks/1517078048187482212/gMp8KRC503Dx_ZQ_rdXfgXcx7mKSoJAL6laJLAO0ewJTB3akL-hSp8-2KpCAsYl0jjv_'
+        # Envoyer également un message Discord quand l'alerte est résolue
+        send_resolved: true

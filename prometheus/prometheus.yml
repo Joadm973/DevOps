@@ -1,0 +1,30 @@
+# Configuration globale de Prometheus
+global:
+  # Fréquence à laquelle Prometheus récupère (scrape) les métriques (bas pour les tests)
+  scrape_interval: 5s
+  # Fréquence à laquelle Prometheus évalue les règles d'alerte (bas pour les tests)
+  evaluation_interval: 5s
+
+# Lien vers Alertmanager pour lui envoyer les alertes déclenchées
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            # L'adresse d'Alertmanager sur le réseau interne Docker
+            - 'alertmanager:9093'
+
+# Fichiers contenant les règles de déclenchement des alertes
+rule_files:
+  - 'alert.rules.yml'
+
+# Cibles (targets) dont Prometheus doit récupérer les métriques
+scrape_configs:
+  # Prometheus se scrape lui-même pour surveiller sa propre santé
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape de Node Exporter pour récupérer les métriques du système
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']

@@ -1,0 +1,99 @@
+version: '3.8'
+
+# Réseau personnalisé pour permettre aux conteneurs de communiquer entre eux
+networks:
+  monitoring:
+    driver: bridge
+
+# Volumes pour la persistance des données (évite de perdre les données au redémarrage)
+volumes:
+  prometheus_data:
+  grafana_data:
+
+services:
+  # Node Exporter collecte les métriques système de la machine hôte
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    container_name: node-exporter
+    # Montage des répertoires hôtes pour lire les informations système (en lecture seule)
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    # Paramètres pour indiquer à Node Exporter où trouver les fichiers hôtes
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    # Exposition du port de Node Exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  # Prometheus récupère et stocke les métriques
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus
+    # Montage du fichier de configuration et des règles d'alerte, et du volume de persistance
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    # Exposition de l'interface web de Prometheus
+    ports:
+      - "9090:9090"
+    # Démarrage de Prometheus avec son fichier de configuration
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitoring
+    # Prometheus a besoin que Node Exporter tourne pour récupérer ses métriques
+    depends_on:
+      - node-exporter
+
+  # Grafana pour la visualisation des métriques via des tableaux de bord
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: grafana
+    # Mot de passe par défaut pour le compte admin (admin / admin)
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    # Persistance des configurations et dashboards Grafana dans un volume Docker
+    volumes:
+      - grafana_data:/var/lib/grafana
+    # Exposition de l'interface web de Grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+    # Grafana dépend de Prometheus comme source de données
+    depends_on:
+      - prometheus
+
+  # Alertmanager gère les alertes envoyées par Prometheus
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: alertmanager
+    # Montage du fichier de configuration d'Alertmanager
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    # Exposition de l'interface API / web d'Alertmanager
+    ports:
+      - "9093:9093"
+    # Démarrage avec le fichier de configuration monté
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    networks:
+      - monitoring
+
+  # MailHog simule un serveur SMTP pour capturer et lire les mails en local
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: mailhog
+    # Exposition de l'interface web (8025) et du port de réception SMTP (1025)
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - monitoring

@@ -1,0 +1,14 @@
+# Groupe de règles pour structurer et évaluer les alertes ensemble
+groups:
+  - name: node_alerts
+    rules:
+      # Règle d'alerte détectant l'arrêt de Node Exporter
+      - alert: NodeExporterDown
+        # Expression PromQL : on vérifie si la valeur "up" du job "node-exporter" est à 0 (injoignable)
+        expr: up{job="node-exporter"} == 0
+        # Le seuil de déclenchement : l'alerte passe en état 'firing' si la condition est vraie pendant 10 secondes
+        for: 10s
+        # Annotations pour enrichir l'alerte avec des informations lisibles par un humain
+        annotations:
+          summary: "L'agent Node Exporter est en panne"
+          description: "Le conteneur node-exporter ne répond plus au scrape depuis plus de 10 secondes. Les métriques du système hôte ne sont plus collectées."
