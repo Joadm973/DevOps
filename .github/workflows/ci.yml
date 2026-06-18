@@ -17,10 +17,9 @@ jobs:
           echo "Exécution des tests du TaskBoard..."
           echo "Tous les tests sont au vert !"
 
-      # On construit l'image en se plaçant explicitement dans le dossier TP3
+      # On construit l'image Docker directement à la racine du dépôt
       - name: Construction de l'image Docker
         run: |
-          cd TP3
           docker build -t taskboard-api:latest .
 
       # Scan Trivy configuré pour ne pas bloquer (exit-code: 0) pour le rapport vert
