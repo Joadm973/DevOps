@@ -14,6 +14,8 @@ COPY src ./src
 COPY .env.example ./.env.example
 COPY package*.json ./
 
+RUN npm install -g npm@latest
+
 USER node
 
 EXPOSE 3000
