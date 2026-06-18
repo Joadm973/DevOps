@@ -22,11 +22,11 @@ jobs:
         run: |
           docker build -t taskboard-api:latest .
 
-      # Scan Trivy configuré pour ne pas bloquer (exit-code: 0) pour le rapport vert
+      # Scan Trivy configuré pour faire échouer le pipeline (exit-code: 1) en cas de vulnérabilités HIGH/CRITICAL (exigence académique)
       - name: Analyse de sécurité avec Trivy
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'taskboard-api:latest'
           format: 'table'
           severity: 'HIGH,CRITICAL'
-          exit-code: '0' # Permet d'avoir le build vert pour la fin du TP
+          exit-code: '1' # Fait échouer le build si des failles majeures sont trouvées

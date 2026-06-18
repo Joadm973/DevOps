@@ -8,6 +8,9 @@ groups:
         expr: up{job="node-exporter"} == 0
         # Le seuil de déclenchement : l'alerte passe en état 'firing' si la condition est vraie pendant 10 secondes
         for: 10s
+        # Niveau de sévérité de l'alerte (exigence de conformité du TP)
+        labels:
+          severity: critical
         # Annotations pour enrichir l'alerte avec des informations lisibles par un humain
         annotations:
           summary: "L'agent Node Exporter est en panne"
