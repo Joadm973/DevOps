@@ -13,6 +13,7 @@ jobs:
 
       # On simule l'étape de test proprement
       - name: Lancement des tests unitaires
+        working-directory: ./taskboard/backend
         run: |
           echo "Exécution des tests du TaskBoard..."
           echo "Tous les tests sont au vert !"
@@ -20,7 +21,7 @@ jobs:
       # Construction de l'image du vrai backend Node.js (Express + pg)
       - name: Construction de l'image Docker
         run: |
-          docker build -t taskboard-api:latest taskboard/backend/
+          docker build -t taskboard-api:latest ./taskboard/backend
 
       # Scan Trivy configuré pour faire échouer le pipeline (exit-code: 1) en cas de vulnérabilités HIGH/CRITICAL (exigence académique)
       - name: Analyse de sécurité avec Trivy
